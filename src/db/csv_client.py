@@ -5,7 +5,7 @@ from src.utils.logger import logger
 class CSVClient:
     def save_to_csv(
         self, job_listings: list[JobListing] | None, 
-        file_path: str = "csv/job_listings.csv"
+        file_path: str
     ):
         if not job_listings:
             return
