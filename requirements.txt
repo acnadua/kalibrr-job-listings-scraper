@@ -1,0 +1,5 @@
+dotenv==0.9.9
+pandas==2.3.3
+playwright==1.57.0
+pydantic==2.12.5
+pymongo==4.15.5
