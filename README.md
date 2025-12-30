@@ -32,11 +32,22 @@ A Python script that scrapes job listings from Kalibrr, a public job board and d
 
 ## Test Instructions:
 
-1. Clone this repository
-2. Run `python -m venv venv` to create a virtual environment and then run `./venv/Scripts/Activate.ps1` if in Windows, or `source venv/bin/activate` if running on Linux
-3. Install the dependencies by running `pip install -r requirements.txt`
-4. Install playwright dependencies and run `playwright install`
-5. Simply run the main file using the command `python .`
-6. Specify what job position to scrape by running `python . --position "<job position>"`, replace `<job_position>` with your desired role (eg. `python . --position "Data Engineer"`)
-7. Specify the "pagination" or the amount of "load more" button clicks by running `python . --load <number>`, replace `<number>` with an actual integer (eg. `python . --load 5`)
-8. May also combine both the `--position` and `--load` arguments like so: `python . --position "architect" --load 3`
+1. Clone this repository and navigate to the generated folder using `cd kalibrr-job-listings-scraper`
+2. Create a `.env` file inside the generated folder with the following variables:
+
+```
+TESTING=true #only if you want a headful browser
+MONGO_URI=<your mongo connection string>
+DB_NAME=<your database>
+```
+
+3. Run the script file depending on your operating system: `run.bat` if on Windows, and if on Linux, use the following commands:
+
+```
+chmod +x run.sh
+./run.sh
+```
+
+4. Answer the prompts or simply press enter, and the scraper will be doing the rest.
+
+5. The CSV files will be generated inside the repository, in a folder named `csv`. It will use the name of the job position, if you specified one. Otherwise, it will be saved into the default filename. **(Warning: It might overwrite the previous CSV files if you scraped the same position or the general job listings)**
