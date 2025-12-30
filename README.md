@@ -1,6 +1,6 @@
 # Job Listings Web Scraper
 
-A Python script that scrapes job listings from Kalibrr, a public job board and doesn't require logging in to access the job listings. Kalibrr is a dynamic website that requires clicking on a "load more" button to load more job listings instead of pagination. For the sake of this project, **we'll treat "pagination" as the amount of "load more" button clicks** to be made before scraping the job listings. In addition to scraping job listings, it also provides an AI summary of the job description and requirements.
+A Python script that scrapes job listings from Kalibrr, a public job board and doesn't require logging in to access the job listings. Kalibrr is a dynamic website that requires clicking on a "load more" button to load more job listings instead of pagination. For the sake of this project, **we'll treat "pagination" as the amount of "load more" button clicks** to be made before scraping the job listings.
 
 ## Features
 
@@ -38,3 +38,5 @@ A Python script that scrapes job listings from Kalibrr, a public job board and d
 4. Install playwright dependencies and run `playwright install`
 5. Simply run the main file using the command `python .`
 6. Specify what job position to scrape by running `python . --position "<job position>"`, replace `<job_position>` with your desired role (eg. `python . --position "Data Engineer"`)
+7. Specify the "pagination" or the amount of "load more" button clicks by running `python . --load <number>`, replace `<number>` with an actual integer (eg. `python . --load 5`)
+8. May also combine both the `--position` and `--load` arguments like so: `python . --position "architect" --load 3`
