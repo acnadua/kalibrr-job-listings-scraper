@@ -1,4 +1,4 @@
-import time, random
+import time, random, re
 from datetime import datetime, timezone, timedelta
 from playwright.sync_api import Page, ElementHandle
 from src.enums import SalaryRange, JobLevel
@@ -27,7 +27,7 @@ class JobListingScraper:
                 timeout=60000
             )
 
-            time.sleep(random.uniform(2, 4))  # Simulate scraping delay
+            time.sleep(random.uniform(1, 2))  # Simulate scraping delay
             self._load_job_listings(page)
             logger.info("Finished loading job listings. Getting job data...")
             jobs = self._scrape(page)
@@ -91,7 +91,9 @@ class JobListingScraper:
         location = location.replace(", Philippines", "").strip() if location else "Unknown Location"
 
         salary = job_details[1].text_content()
+        
         salary_range_month = salary.replace("/ month", "").strip() if salary else ""
+        salary_range_month = re.sub(r"\(.+\)", "", salary_range_month).strip()  # Remove any text in parentheses
         salary_range_month = self._get_salary_range(salary_range_month).value
 
         employment = job_details[2].query_selector("> span")
@@ -154,10 +156,27 @@ class JobListingScraper:
         return JobLevel.Undisclosed
     
     def _get_salary_range(self, salary: str) -> SalaryRange:
+        is_per_hour = False
+        is_per_year = False
+
         if "Undisclosed" in salary:
             return SalaryRange.Undisclosed
         
+        if "hour" in salary:
+            salary = salary.replace("/ hour", "").strip()
+            is_per_hour = True
+
+        if "year" in salary:
+            salary = salary.replace("/ year", "").strip()
+            is_per_year = True
+        
         sal_range = [s.strip().replace(",", "")[1:] for s in salary.split("-")]
+        if is_per_hour:
+            sal_range = [float(s) * 160 for s in sal_range]  # Convert hourly to monthly
+
+        if is_per_year:
+            sal_range = [float(s) / 12 for s in sal_range]  # Convert yearly to monthly
+            
         if len(sal_range) > 2:
             return SalaryRange.Undisclosed
         
@@ -184,7 +203,7 @@ class JobListingScraper:
     def _load_job_listings(self, page: Page):
         for _ in range(self.load):
           self.human_simulator.scroll_until_end(page)
-          time.sleep(random.uniform(2, 4)) # Simulate user reading time
+          time.sleep(random.uniform(1, 2)) # Simulate user reading time
           success = self.human_simulator.click_load_more(page)
 
           if not success:
