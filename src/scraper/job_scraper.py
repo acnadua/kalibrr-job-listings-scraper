@@ -1,6 +1,7 @@
 import time, random
 from datetime import datetime, timezone, timedelta
 from playwright.sync_api import Page, ElementHandle
+from src.enums import SalaryRange, JobLevel
 from src.db.csv_client import CSVClient
 from src.db.mongo_client import MongoDBClient
 from src.scraper.human_behavior import HumanBehaviorSimulator
@@ -87,9 +88,11 @@ class JobListingScraper:
             return {}
         
         location = job_details[0].text_content()
+        location = location.replace(", Philippines", "").strip() if location else "Unknown Location"
 
         salary = job_details[1].text_content()
         salary_range_month = salary.replace("/ month", "").strip() if salary else ""
+        salary_range_month = self._get_salary_range(salary_range_month).value
 
         employment = job_details[2].query_selector("> span")
         employment_type = employment.text_content() if employment else ""
@@ -124,7 +127,7 @@ class JobListingScraper:
             "employment_type": employment_type,
             "work_setup": work_setup,
             "application_deadline_utc": application_deadline,
-            "role_rank": role_rank,
+            "role_rank": self._get_role_rank(role_rank).value,
         }
     
     def _get_work_setup(self, work_setup: str | None = None):
@@ -132,7 +135,52 @@ class JobListingScraper:
             return work_setup
         
         return "On-site"
-
+    
+    def _get_role_rank(self, job_level: str | None) -> JobLevel:
+        if not job_level:
+            return JobLevel.Undisclosed
+        
+        if "Intern" in job_level:
+            return JobLevel.Intern
+        if "Entry" in job_level:
+            return JobLevel.EntryJunior
+        if "Associate" in job_level:
+            return JobLevel.AssociateSupervisor
+        if "Mid" in job_level:
+            return JobLevel.MidSenior
+        if "Director" in job_level:
+            return JobLevel.DirectorExec
+        
+        return JobLevel.Undisclosed
+    
+    def _get_salary_range(self, salary: str) -> SalaryRange:
+        if "Undisclosed" in salary:
+            return SalaryRange.Undisclosed
+        
+        sal_range = [s.strip().replace(",", "")[1:] for s in salary.split("-")]
+        if len(sal_range) > 2:
+            return SalaryRange.Undisclosed
+        
+        if len(sal_range) == 1:
+            return self._get_salary_range_enum(float(sal_range[0]))
+        
+        average = (sum(float(s) for s in sal_range) / len(sal_range))
+        return self._get_salary_range_enum(average)
+        
+    def _get_salary_range_enum(self, salary: float) -> SalaryRange:
+        if salary < 30_000:
+            return SalaryRange.AverageRange_30K
+        elif salary < 60_000:
+            return SalaryRange.AverageRange_60K
+        elif salary < 90_000:
+            return SalaryRange.AverageRange_90K
+        elif salary < 120_000:
+            return SalaryRange.AverageRange_120K
+        elif salary >= 120_000:
+            return SalaryRange.AverageRange_Above120K
+        else:
+            return SalaryRange.Undisclosed
+        
     def _load_job_listings(self, page: Page):
         for _ in range(self.load):
           self.human_simulator.scroll_until_end(page)
